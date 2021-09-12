@@ -17102,6 +17102,8 @@ require("error-polyfill");
 var CONTRACT_NAME = "dev-1631483592133-3734756" || 'js13k-2021-mass-crosses.aurium.testnet';
 
 function getConfig(env) {
+  console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA getConfig', env);
+
   switch (env) {
     case 'production':
     case 'mainnet':
@@ -17437,7 +17439,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "39663" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "39503" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
