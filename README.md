@@ -86,6 +86,12 @@ As you can see in `package.json`, this does two things:
 2. builds & deploys frontend code to GitHub using [gh-pages]. This will only work if the project already has a repository set up on GitHub. Feel free to modify the `deploy` script in `package.json` to deploy elsewhere.
 
 
+My Notes
+--------
+
+* Add `NODE_ENV=development` to the deploy realy use rpc.testnet.near.org
+
+
 Troubleshooting
 ===============
 

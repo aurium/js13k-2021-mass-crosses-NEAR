@@ -1,18 +1,69 @@
-/*
- * This is an example of an AssemblyScript smart contract with two simple,
- * symmetric functions:
- *
- * 1. setGreeting: accepts a greeting, such as "howdy", and records it for the
- *    user (account_id) who sent the request
- * 2. getGreeting: accepts an account_id and returns the greeting saved for it,
- *    defaulting to "Hello"
- *
- * Learn more about writing NEAR smart contracts with AssemblyScript:
- * https://docs.near.org/docs/develop/contracts/as/intro
- *
- */
+// https://docs.near.org/docs/develop/contracts/as/intro
 
-import { Context, logging, storage } from 'near-sdk-as'
+import { context, logging, storage, PersistentUnorderedMap } from 'near-sdk-as'
+
+type AccountId = string;
+
+interface Piece {
+  owner: AccountId;
+  mass: i32;
+}
+
+// interface IGameData {
+//   id: string;
+//   status: string;
+//   players: (AccountId)[];
+//   turn: AccountId;
+//   winner: AccountId;
+//   board: (Piece|null)[][];
+// }
+
+@nearBindgen
+class GameData {
+  id: string;
+  status: string;
+  players: (AccountId)[];
+  turn: AccountId ;
+  winner: AccountId;
+  board: (Piece|null)[][];
+  constructor(
+    id: string,
+    status: string,
+    players: (AccountId)[],
+    turn: AccountId,
+    winner: AccountId,
+    board: (Piece|null)[][],
+  ) {
+    this.id = id
+    this.status = status
+    this.players = players
+    this.turn = turn
+    this.winner = winner
+    this.board = board
+  }
+}
+
+const gameStorage = new PersistentUnorderedMap<string, GameData>('crosses-game')
+
+const STATUS_PENDING:  string = 'PENDING'
+const STATUS_RUNNING:  string = 'RUNNING'
+const STATUS_FINISHED: string = 'FINISHED'
+
+export function getOrInitGame(gameId: string): GameData {
+  let game: GameData|null = gameStorage.get(gameId, null)
+  if (game == null) {
+    game = new GameData(
+      gameId,
+      STATUS_PENDING,
+      [ context.sender, '' ],
+      '',
+      '',
+      [ [null,null,null], [null,null,null], [null,null,null] ]
+    )
+    gameStorage.set(gameId, game)
+  }
+  return game
+}
 
 const DEFAULT_MESSAGE = 'Hello'
 
@@ -27,7 +78,7 @@ export function getGreeting(accountId: string): string | null {
 }
 
 export function setGreeting(message: string): void {
-  const account_id = Context.sender
+  const account_id = context.sender
 
   // Use logging.log to record logs permanently to the blockchain!
   logging.log(
