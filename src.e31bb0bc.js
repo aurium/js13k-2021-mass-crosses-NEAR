@@ -874,6 +874,72 @@ try {
   }
 }
 
+},{}],"mkel.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = mkEl;
+
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+var SVGNS = 'http://www.w3.org/2000/svg';
+
+function mkEl(tag) {
+  var attrs = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  var el = tag instanceof Element ? tag : document.createElement(tag);
+  mkEl.extend(el);
+  Object.keys(attrs).forEach(function (att) {
+    return att === 'text' ? el.appendChild(document.createTextNode(attrs[att])) : att === 'parent' ? attrs.parent.appendChild(el) : att === 'child' ? attrs.child.forEach(function (tag, i) {
+      if (i % 2 === 0) el.mkChild(tag, attrs.child[i + 1] || {});
+    }) : att === 'css' ? el.setStyle(attrs.css) : att.match(/^on/) ? el[att] = attrs[att] : el.setAttribute(att, attrs[att]);
+  });
+  return el;
+}
+
+mkEl.svg = function mkSVGEl(tag, attrs) {
+  if (tag instanceof Element) return mkEl(tag, attrs);else return mkEl(document.createElementNS(SVGNS, tag), attrs);
+};
+
+function mkChild(tag, attrs) {
+  attrs = _objectSpread(_objectSpread({}, attrs), {}, {
+    parent: this
+  });
+  if (this instanceof SVGElement) return mkEl.svg(tag, attrs);else return mkEl(tag, attrs);
+}
+
+mkEl.extend = function extendElement(el) {
+  el.mkChild = mkChild;
+
+  el.setStyle = function (style) {
+    return Object.entries(style).forEach(function (_ref) {
+      var _ref2 = _slicedToArray(_ref, 2),
+          key = _ref2[0],
+          val = _ref2[1];
+
+      return el.style[key] = val;
+    });
+  };
+
+  return el;
+};
 },{}],"../node_modules/near-api-js/lib/key_stores/keystore.js":[function(require,module,exports) {
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -17102,8 +17168,6 @@ require("error-polyfill");
 var CONTRACT_NAME = "dev-1631483592133-3734756" || 'js13k-2021-mass-crosses.aurium.testnet';
 
 function getConfig(env) {
-  console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA getConfig', env);
-
   switch (env) {
     case 'production':
     case 'mainnet':
@@ -17220,9 +17284,9 @@ function _initContract() {
             _context.next = 7;
             return new _nearApiJs.Contract(window.walletConnection.account(), nearConfig.contractName, {
               // View methods are read only. They don't modify the state, but usually return some value.
-              viewMethods: ['getGreeting'],
+              viewMethods: [],
               // Change methods can modify the state. But you don't receive the returned value when called.
-              changeMethods: ['setGreeting']
+              changeMethods: ['getOrInitGame']
             });
 
           case 7:
@@ -17256,6 +17320,8 @@ function login() {
 
 require("regenerator-runtime/runtime");
 
+var _mkel = _interopRequireDefault(require("./mkel"));
+
 var _utils = require("./utils");
 
 var _config = _interopRequireDefault(require("./config"));
@@ -17266,85 +17332,220 @@ function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
+var doc = document;
+var body = doc.body;
+
+var $ = function $(sel) {
+  return doc.querySelector(sel);
+};
+
+var PI = Math.PI,
+    sin = Math.sin,
+    cos = Math.cos,
+    round = Math.round,
+    sign = Math.sign,
+    min = Math.min,
+    max = Math.max,
+    sqrt = Math.sqrt,
+    abs = Math.abs,
+    atan2 = Math.atan2;
+var PI2 = PI * 2;
+
+var rnd = function rnd() {
+  var lim1 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
+  var lim2 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+
+  if (lim2 === null) {
+    var _ref = [0, lim1];
+    lim1 = _ref[0];
+    lim2 = _ref[1];
+  }
+
+  return Math.random() * (lim2 - lim1) + lim1;
+};
+
+function mapFor(from, to, inc, mapper) {
+  var result = [];
+
+  for (var i = from; i <= to; i += inc) {
+    result.push(i);
+  }
+
+  return result.map(mapper);
+} // If there is no game ID on url, Create a new one!
+
+
+var gameId = (doc.location.search.substr(1).split('&').find(function (s) {
+  return s.indexOf('game=') == 0;
+}) || '').substr(5);
+if (!gameId) doc.location.href = doc.location.href + '?game=' + Math.random().toString(16).split('.')[1];
+var updateGameInterval,
+    gameData = {};
+
+var gameset = _mkel.default.extend($('gameset'));
+
 var _getConfig = (0, _config.default)("development" || 'development'),
-    networkId = _getConfig.networkId; // global variable used throughout
+    networkId = _getConfig.networkId;
 
+gameset.boxes = [];
+gameset.mkChild('span', {
+  text: ' '
+});
+gameset.mkChild('span', {
+  text: '1'
+});
+gameset.mkChild('span', {
+  text: '2'
+});
+gameset.mkChild('span', {
+  text: '3'
+});
+gameset.mkChild('span', {
+  text: ' '
+});
 
-var currentGreeting;
-var submitButton = document.querySelector('form button');
+for (var y = 0; y < 3; y++) {
+  gameset.mkChild('span', {
+    text: 'ABC'[y],
+    class: 'line'
+  });
+  gameset.boxes[y] = [];
 
-document.querySelector('form').onsubmit = /*#__PURE__*/function () {
-  var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(event) {
-    var _event$target$element, fieldset, greeting;
+  for (var x = 0; x < 3; x++) {
+    gameset.boxes[y][x] = gameset.mkChild('div', {
+      class: "pos-".concat(x, "-").concat(y, " empty")
+    });
+  }
 
+  gameset.mkChild('span', {
+    text: 'ABC'[y],
+    class: 'line'
+  });
+}
+
+gameset.mkChild('span', {
+  text: ' '
+});
+gameset.mkChild('span', {
+  text: '1'
+});
+gameset.mkChild('span', {
+  text: '2'
+});
+gameset.mkChild('span', {
+  text: '3'
+});
+gameset.mkChild('span', {
+  text: ' '
+});
+
+function addPiece(_x, _x2, _x3) {
+  return _addPiece.apply(this, arguments);
+}
+
+function _addPiece() {
+  _addPiece = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(x, y, kind) {
     return regeneratorRuntime.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            event.preventDefault(); // get elements from the form using their id attribute
+            if (!(gameData.turn != window.accountId)) {
+              _context.next = 2;
+              break;
+            }
 
-            _event$target$element = event.target.elements, fieldset = _event$target$element.fieldset, greeting = _event$target$element.greeting; // disable the form while the value gets updated on-chain
+            return _context.abrupt("return", alert('It is not your turn.'));
 
-            fieldset.disabled = true;
-            _context.prev = 3;
-            _context.next = 6;
-            return window.contract.setGreeting({
-              // pass the value that the user entered in the greeting field
-              message: greeting.value
-            });
+          case 2:
+            if (gameData.status != 'RUNNING') alert('The game was not started');
 
-          case 6:
-            _context.next = 12;
-            break;
+            if (!(gameData.set[y][x] >= kind)) {
+              _context.next = 5;
+              break;
+            }
 
-          case 8:
-            _context.prev = 8;
-            _context.t0 = _context["catch"](3);
-            alert('Something went wrong! ' + 'Maybe you need to sign out and back in? ' + 'Check your browser console for more info.');
-            throw _context.t0;
+            return _context.abrupt("return", alert('You can not place this piece here.'));
 
-          case 12:
-            _context.prev = 12;
-            // re-enable the form, whether the call succeeded or failed
-            fieldset.disabled = false;
-            return _context.finish(12);
-
-          case 15:
-            // disable the save button, since it now matches the persisted value
-            submitButton.disabled = true; // update the greeting in the UI
-
-            _context.next = 18;
-            return fetchGreeting();
-
-          case 18:
-            // show notification
-            document.querySelector('[data-behavior=notification]').style.display = 'block'; // remove notification again after css animation completes
-            // this allows it to be shown again next time the form is submitted
-
-            setTimeout(function () {
-              document.querySelector('[data-behavior=notification]').style.display = 'none';
-            }, 11000);
-
-          case 20:
+          case 5:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[3, 8, 12, 15]]);
+    }, _callee);
   }));
+  return _addPiece.apply(this, arguments);
+}
 
-  return function (_x) {
-    return _ref.apply(this, arguments);
-  };
-}();
+var ticCounter = 0;
 
-document.querySelector('input#greeting').oninput = function (event) {
-  if (event.target.value !== currentGreeting) {
-    submitButton.disabled = false;
-  } else {
-    submitButton.disabled = true;
-  }
-};
+function fetchGameUpdate() {
+  ticCounter++;
+  gameData = {
+    players: [window.accountId, 'Someone'],
+    board: [[{
+      owner: ticCounter % 2 == 0 ? window.accountId : 'Someone',
+      mass: 1
+    }, {
+      owner: ticCounter % 2 == 0 ? window.accountId : 'Someone',
+      mass: 2
+    }, {
+      owner: ticCounter % 2 == 0 ? window.accountId : 'Someone',
+      mass: 3
+    }], [{
+      owner: ticCounter % 2 == 0 ? window.accountId : 'Someone',
+      mass: 4
+    }, {
+      owner: ticCounter % 2 == 0 ? window.accountId : 'Someone',
+      mass: 5
+    }, {
+      owner: ticCounter % 2 == 0 ? window.accountId : 'Someone',
+      mass: 6
+    }], [{
+      owner: ticCounter % 2 == 0 ? window.accountId : 'Someone',
+      mass: 7
+    }, {
+      owner: ticCounter % 2 == 0 ? window.accountId : 'Someone',
+      mass: 8
+    }, {
+      owner: ticCounter % 2 == 0 ? window.accountId : 'Someone',
+      mass: 9
+    }]]
+  }; // contract.getOrInitGame({gameId})
+  // .then(data => {
+  //   console.log('GOT GAME!', data)
+  //   gameData = data
+
+  for (var _y = 0; _y < 3; _y++) {
+    var _loop = function _loop(_x4) {
+      var boxData = gameData.board[_y][_x4];
+
+      if (boxData) {
+        var boxEl = gameset.boxes[_y][_x4];
+        boxEl.classList.remove('empty');
+        var player = gameData.players.findIndex(function (p) {
+          return p == boxData.owner;
+        });
+
+        while (boxEl.firstChild) {
+          boxEl.firstChild.remove();
+        }
+
+        boxEl.mkChild('p', {
+          class: "kind-".concat(boxData.mass, " player-").concat(player)
+        });
+      }
+    };
+
+    for (var _x4 = 0; _x4 < 3; _x4++) {
+      _loop(_x4);
+    }
+  } // })
+  // .catch(err => {
+  //   console.log('Fail to fetch game update.', err)
+  //   alert('Fail to fetch game update.\n See console for more details.')
+  // })
+
+}
 
 document.querySelector('#sign-in-button').onclick = _utils.login;
 document.querySelector('#sign-out-button').onclick = _utils.logout; // Display the signed-out-flow container
@@ -17358,60 +17559,30 @@ function signedInFlow() {
   document.querySelector('#signed-in-flow').style.display = 'block';
   document.querySelectorAll('[data-behavior=account-id]').forEach(function (el) {
     el.innerText = window.accountId;
-  }); // populate links in the notification box
-
-  var accountLink = document.querySelector('[data-behavior=notification] a:nth-of-type(1)');
-  accountLink.href = accountLink.href + window.accountId;
-  accountLink.innerText = '@' + window.accountId;
-  var contractLink = document.querySelector('[data-behavior=notification] a:nth-of-type(2)');
-  contractLink.href = contractLink.href + window.contract.contractId;
-  contractLink.innerText = '@' + window.contract.contractId; // update with selected networkId
-
-  accountLink.href = accountLink.href.replace('testnet', networkId);
-  contractLink.href = contractLink.href.replace('testnet', networkId);
-  fetchGreeting();
-} // update global currentGreeting variable; update DOM with it
-
-
-function fetchGreeting() {
-  return _fetchGreeting.apply(this, arguments);
+  });
+  updateGameInterval = setInterval(fetchGameUpdate, 3000);
 } // `nearInitPromise` gets called on page load
 
 
-function _fetchGreeting() {
-  _fetchGreeting = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
-    return regeneratorRuntime.wrap(function _callee2$(_context2) {
-      while (1) {
-        switch (_context2.prev = _context2.next) {
-          case 0:
-            _context2.next = 2;
-            return contract.getGreeting({
-              accountId: window.accountId
-            });
-
-          case 2:
-            currentGreeting = _context2.sent;
-            document.querySelectorAll('[data-behavior=greeting]').forEach(function (el) {
-              // set divs, spans, etc
-              el.innerText = currentGreeting; // set input elements
-
-              el.value = currentGreeting;
-            });
-
-          case 4:
-          case "end":
-            return _context2.stop();
-        }
-      }
-    }, _callee2);
-  }));
-  return _fetchGreeting.apply(this, arguments);
-}
-
 window.nearInitPromise = (0, _utils.initContract)().then(function () {
   if (window.walletConnection.isSignedIn()) signedInFlow();else signedOutFlow();
-}).catch(console.error);
-},{"regenerator-runtime/runtime":"../node_modules/regenerator-runtime/runtime.js","./utils":"utils.js","./config":"config.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+}).catch(function (err) {
+  alert('Init contract fail!\nSee console for details.');
+  console.error('Init contract fail:', err);
+}); // Create galaxy style
+
+(0, _mkel.default)('style', {
+  parent: doc.head,
+  text: "\n  .kind-9::before {\n    top: 7rem;\n    left: 7rem;\n    width: .5rem;\n    height: .5rem;\n    border-radius: .3rem;\n    background: #FFF;\n    box-shadow:\n    ".concat(mapFor(0, 80 * PI, PI2 / 4.95, function (a) {
+    var i = (1.1 - a / (80 * PI)) * 2;
+    var cor = "hsl(var(--hue) 80% ".concat(rnd(80, 100), "%)");
+    return "".concat(sin(a) * a / 25 + rnd(-i, i), "rem ").concat(cos(a) * a / 25 + rnd(-i, i), "rem 0 ").concat(cor);
+  }).join(',\n'), ";\n  }\n  .kind-9::after {\n    top: 7rem;\n    left: 7rem;\n    width: .3rem;\n    height: .3rem;\n    border-radius: .2rem;\n    background: #FFF;\n    box-shadow: ").concat(mapFor(0, 220 * PI, PI2 / 4.98, function (a) {
+    var cor = "hsl(var(--hue) 80% ".concat(rnd(80, 100), "%)");
+    return "".concat(sin(a) * a / 60 + rnd(-1, 1), "rem ").concat(cos(a) * a / 60 + rnd(-1, 1), "rem 0 ").concat(cor);
+  }).join(',\n'), ";\n  }\n  ")
+});
+},{"regenerator-runtime/runtime":"../node_modules/regenerator-runtime/runtime.js","./mkel":"mkel.js","./utils":"utils.js","./config":"config.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -17439,7 +17610,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "35605" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "36767" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
