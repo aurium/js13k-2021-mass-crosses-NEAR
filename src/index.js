@@ -63,30 +63,30 @@ async function addPiece(x,y, kind) {
 let ticCounter = 0
 function fetchGameUpdate() {
   ticCounter++
-  gameData = {
-    players: [ window.accountId, 'Someone' ],
-    board: [
-      [
-        { owner: ticCounter%2==0 ? window.accountId : 'Someone', mass: 1 },
-        { owner: ticCounter%2==0 ? window.accountId : 'Someone', mass: 2 },
-        { owner: ticCounter%2==0 ? window.accountId : 'Someone', mass: 3 },
-      ],
-      [
-        { owner: ticCounter%2==0 ? window.accountId : 'Someone', mass: 4 },
-        { owner: ticCounter%2==0 ? window.accountId : 'Someone', mass: 5 },
-        { owner: ticCounter%2==0 ? window.accountId : 'Someone', mass: 6 },
-      ],
-      [
-        { owner: ticCounter%2==0 ? window.accountId : 'Someone', mass: 7 },
-        { owner: ticCounter%2==0 ? window.accountId : 'Someone', mass: 8 },
-        { owner: ticCounter%2==0 ? window.accountId : 'Someone', mass: 9 },
-      ]
-    ]
-  }
-  // contract.getOrInitGame({gameId})
-  // .then(data => {
-  //   console.log('GOT GAME!', data)
-  //   gameData = data
+  // gameData = {
+  //   players: [ window.accountId, 'Someone' ],
+  //   board: [
+  //     [
+  //       { owner: ticCounter%2==0 ? window.accountId : 'Someone', mass: 1 },
+  //       { owner: ticCounter%2==0 ? window.accountId : 'Someone', mass: 2 },
+  //       { owner: ticCounter%2==0 ? window.accountId : 'Someone', mass: 3 },
+  //     ],
+  //     [
+  //       { owner: ticCounter%2==0 ? window.accountId : 'Someone', mass: 4 },
+  //       { owner: ticCounter%2==0 ? window.accountId : 'Someone', mass: 5 },
+  //       { owner: ticCounter%2==0 ? window.accountId : 'Someone', mass: 6 },
+  //     ],
+  //     [
+  //       { owner: ticCounter%2==0 ? window.accountId : 'Someone', mass: 7 },
+  //       { owner: ticCounter%2==0 ? window.accountId : 'Someone', mass: 8 },
+  //       { owner: ticCounter%2==0 ? window.accountId : 'Someone', mass: 9 },
+  //     ]
+  //   ]
+  // }
+  contract.getOrInitGame({gameId})
+  .then(data => {
+    console.log('GOT GAME!', data)
+    gameData = data
     for (let y=0; y<3; y++) for (let x=0; x<3; x++) {
       let boxData = gameData.board[y][x]
       if (boxData) {
@@ -97,11 +97,11 @@ function fetchGameUpdate() {
         boxEl.mkChild('p', { class: `kind-${boxData.mass} player-${player}` })
       }
     }
-  // })
-  // .catch(err => {
-  //   console.log('Fail to fetch game update.', err)
-  //   alert('Fail to fetch game update.\n See console for more details.')
-  // })
+  })
+  .catch(err => {
+    console.log('Fail to fetch game update.', err)
+    alert('Fail to fetch game update.\n See console for more details.')
+  })
 }
 
 document.querySelector('#sign-in-button').onclick = login
@@ -120,7 +120,7 @@ function signedInFlow() {
     el.innerText = window.accountId
   })
 
-  updateGameInterval = setInterval(fetchGameUpdate, 3000)
+  updateGameInterval = setInterval(fetchGameUpdate, 5000)
 }
 
 // `nearInitPromise` gets called on page load
